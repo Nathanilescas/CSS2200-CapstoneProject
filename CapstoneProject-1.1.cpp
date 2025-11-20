@@ -8,6 +8,13 @@ char* sensors[3] = {"Soil", "Temp", "Humid"};
 int current_sensor = 0;
 int ui_state = false;
 
+int minValue[2] = {-1, -1};
+int maxValue[2] = {-1, -1};
+void clearMM() {
+    minValue = {-1, -1};
+    maxValue = {-1, -1};
+}
+
 struct RemoteControl {
   long code;
   const char symbol;
@@ -104,10 +111,12 @@ class SensorSpecs {
 class SensorReader{
     public: 
         int getTemp() {
-
+            // don't forget to connect the sensor and finish this method
+            return 50;
         }
         int getHumid() {
-
+            // don't forget to connect the sensor and finish this method
+            return 60;
         }
         int getSoil() {
             int soil_reading = analogRead(moisture_sensor);
@@ -127,12 +136,13 @@ class Command {
   }
 	
   void setUpMode() {
-  	if(_getUIState()) _disableUI();
+  	if(_getUIState()) {
+      _disableUI();
+      clearMM();   
+    }
     else _enableUI();
   }
    void enterNumber(int num){
-    // USE NUM TO FIND THE NEXT SPOT FOR THE CURSOR AND PRINT NUM
-  	// NOTE: THIS IS ONLY TO BE USED IF SETUP IS ENABLED
      if(_getUIState()){
        
      }
@@ -161,13 +171,88 @@ class Command {
   bool _getUIState() { return ui_state; }
 };
 
+class Display {
+  
+    public:
+        void display() {
+            if(ui_state) {
+                _displaySensor();
+                _displayMinValues();
+            } else {
+              _displaySensor();
+              _displayLiveValue();
+              _navArrows();
+            }
+        }
+    private:
+        SensorReader _source;
+
+        void _navArrows() {
+            lcd.setCursor(0,1);
+            lcd.print('<');
+            lcd.setCursor(15,1);
+            lcd.print('>');
+        }
+        void _displaySensor() {
+            char* sensor_name = sensors[current_sensor];
+            lcd.setCursor(4,0);
+            lcd.print(sensor_name);
+            lcd.print(": ");
+        }
+        void _displayLiveValue() {
+            lcd.print(_getLiveSensorValue(current_sensor));
+        }
+
+        void _displayMinValues() {
+            _displayMinValue();
+            _displayMinValue(0);
+        }
+        void _displayMinValue() {
+            lcd.setCursor(0,1);
+            lcd.print("Min: ");
+            lcd.blink();
+        }
+        void _displayMaxValue() {
+            lcd.setCursor(0, 9);
+            lcd.print("Max: ");
+            lcd.blink();
+        }
+        void _displayMinValue(int index) {
+            if(minValue[index] > 0) {
+                lcd.print(minValue[index]);
+                _displayMinValue(index++);
+            }
+            return;
+        }
+
+        int _getLiveSensorValue(int index) {
+            switch (index) {
+                case 0: return _source.getSoil();
+                    break;
+                case 1: return _source.getTemp();
+                    break;
+                case 2: return _source.getHumid(); 
+                    break;
+                default: {
+                    Serial.println("ERROR AT _getCurrentSensor");
+                    return -1;
+                }
+                    break;
+            }
+        }
+};
+
 class Remote {
+    Display tempScreen;
     public:
         void receive() {
             if(IrReceiver.decode() > 0) {
+               lcd.clear();
                char command = _decodeInput();
+
                if(command != -1) {
                     _runCommands(command);
+                 tempScreen.display();
                } else {
                 // diplay.ERROR(); DISPLAY AN ERROR OCCURED ON THE LCD
                }
@@ -198,33 +283,15 @@ class Remote {
               	case 'W': cmd.setUpMode();
                 	break;
               	default: cmd.enterNumber(code);
-            };
+            };  
         }
 };
 
-class Display {
-  
-    public:
-        void display(int value) {
-          
-		  _navArrows();
-        }
-        void setUp() {
-			
-        }
-    private:
-        SensorReader _source;
 
-        void _navArrows() {
-            lcd.setCursor(0,1);
-            lcd.print('<');
-            lcd.setCursor(15,1);
-            lcd.print('>');
-        }
-};
 
 // STARTER VARIABLES
-Remote remote;
+Remote ir;
+Display screen;
 
 void setup() {
     Serial.begin(9500);    
@@ -236,11 +303,10 @@ void setup() {
 
     // IR RECEIVER
     IrReceiver.begin(ir_receiver);
-    Serial.print(current_sensor);
-    
+    screen.display();    
 }
 
 void loop() {
-    remote.receive();
+    ir.receive();
   	delay(750);
 }
