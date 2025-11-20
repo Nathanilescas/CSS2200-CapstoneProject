@@ -1,6 +1,8 @@
 #include <LiquidCrystal.h>
 #include <IRremote.h>
 
+
+
 // GLOBAL VARIABLES
 char* sensors[3] = {"Soil", "Temp", "Humid"};
 int current_sensor = 0;
@@ -54,10 +56,6 @@ class SensorSpecs {
         int max_humid = 99;
     public:
         // GETTERS
-        char* getCurrentSensor(){
-            return sensors[current_sensor];
-        }
-
         int getMinSoil() {
             return min_soil;
         }
@@ -102,6 +100,7 @@ class SensorSpecs {
         }
 };
 
+
 class SensorReader{
     public: 
         int getTemp() {
@@ -117,22 +116,6 @@ class SensorReader{
         }
 };
 
-class Display {
-    public:
-        void display() {
-
-        }
-    private:
-        SensorReader _source;
-
-        void _navArrows() {
-            lcd.setCursor(0,1);
-            lcd.print('<');
-            lcd.setCursor(15,1);
-            lcd.print('>');
-        }
-};
-
 class Command {
   public: 
   // NOTE THESE ARE ALL SETTING FUNCTION THAT DOESN'T WORRY ABOUT THE DISPLAY, ITS LIKE A SUPPORTING CLASS FOR DISPLAY
@@ -144,7 +127,7 @@ class Command {
   }
 	
   void setUpMode() {
-  	if(_getUIState())_disableUI();
+  	if(_getUIState()) _disableUI();
     else _enableUI();
   }
    void enterNumber(int num){
@@ -214,8 +197,29 @@ class Remote {
               		break;
               	case 'W': cmd.setUpMode();
                 	break;
-              	default: cmd.enterNumber(code);// I NEED A WAY TO OBTAIN THE ENTERED NUMBER FROM HERE
+              	default: cmd.enterNumber(code);
             };
+        }
+};
+
+class Display {
+  
+    public:
+        void display(int value) {
+          
+		  _navArrows();
+        }
+        void setUp() {
+			
+        }
+    private:
+        SensorReader _source;
+
+        void _navArrows() {
+            lcd.setCursor(0,1);
+            lcd.print('<');
+            lcd.setCursor(15,1);
+            lcd.print('>');
         }
 };
 
@@ -232,7 +236,7 @@ void setup() {
 
     // IR RECEIVER
     IrReceiver.begin(ir_receiver);
-  Serial.print(current_sensor);
+    Serial.print(current_sensor);
     
 }
 
