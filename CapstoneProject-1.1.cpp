@@ -8,11 +8,11 @@ char* sensors[3] = {"Soil", "Temp", "Humid"};
 int current_sensor = 0;
 int ui_state = false;
 
-int minValue[2] = {-1, -1};
-int maxValue[2] = {-1, -1};
+int specValues[4] = {-1, -1, -1, -1};
 void clearMM() {
-    minValue = {-1, -1};
-    maxValue = {-1, -1};
+    for(int i = 0; i < 4; i++) {
+        specValues[i] = -1;
+    }
 }
 
 struct RemoteControl {
@@ -143,10 +143,18 @@ class Command {
     else _enableUI();
   }
    void enterNumber(int num){
-     if(_getUIState()){
-       
-     }
+    if(_getUIState()){
+        for(int i = 0; i < 4; i++) {
+            if(specValues[i] < 0) {
+                specValues[i] = num;
+                return;
+            }
+        }
+    }
   }
+
+
+
   void select() {
     // SAVES THE CHAR WHERE THE CURSOR IS OVER BEFORE IT MOVES ON
   }
@@ -177,7 +185,7 @@ class Display {
         void display() {
             if(ui_state) {
                 _displaySensor();
-                _displayMinValues();
+                _displaySpecs();
             } else {
               _displaySensor();
               _displayLiveValue();
@@ -203,26 +211,38 @@ class Display {
             lcd.print(_getLiveSensorValue(current_sensor));
         }
 
-        void _displayMinValues() {
-            _displayMinValue();
-            _displayMinValue(0);
+
+        void _displaySpecs() {
+            _displayMin();
+            _displayMax();
+            _displaySensorValues();
         }
-        void _displayMinValue() {
-            lcd.setCursor(0,1);
+        void _displayMin() {
+            lcd.setCursor(0, 1);
             lcd.print("Min: ");
-            lcd.blink();
         }
-        void _displayMaxValue() {
-            lcd.setCursor(0, 9);
+        void _displayMax() {
+            lcd.setCursor(8, 1);
             lcd.print("Max: ");
-            lcd.blink();
         }
-        void _displayMinValue(int index) {
-            if(minValue[index] > 0) {
-                lcd.print(minValue[index]);
-                _displayMinValue(index++);
+        void _displaySensorValues() {
+            int min_placment = 5;
+            int max_placement = 13;
+
+            _printValue();
+            
+        }
+        void _printValue() {
+            lcd.setCursor(5, 1);
+            for(int i = 0; i < 4; i++) {
+                if(i == 2)lcd.setCursor(13, 1);
+                if(specValues[i] > 0) {
+                    lcd.print(specValues[i]);
+                }else {
+                    lcd.blink();
+                  	return;
+                }
             }
-            return;
         }
 
         int _getLiveSensorValue(int index) {
@@ -249,7 +269,7 @@ class Remote {
             if(IrReceiver.decode() > 0) {
                lcd.clear();
                char command = _decodeInput();
-
+                Serial.println(command);
                if(command != -1) {
                     _runCommands(command);
                  tempScreen.display();
@@ -282,7 +302,10 @@ class Remote {
               		break;
               	case 'W': cmd.setUpMode();
                 	break;
-              	default: cmd.enterNumber(code);
+              	default: {
+                  	int convertedInt = code - '0';
+                	cmd.enterNumber(convertedInt);
+                }
             };  
         }
 };
