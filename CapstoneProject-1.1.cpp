@@ -2,55 +2,6 @@
 #include <IRremote.h>
 
 
-
-// GLOBAL VARIABLES
-char* sensors[3] = {"Soil", "Temp", "Humid"};
-int current_sensor = 0;
-int ui_state = false;
-
-int specValues[4] = {-1, -1, -1, -1};
-void clearMM() {
-    for(int i = 0; i < 4; i++) {
-        specValues[i] = -1;
-    }
-}
-
-struct RemoteControl {
-  long code;
-  const char symbol;
-};
-
-RemoteControl remote_definitions[] = {
-  {4077698816, '0'},
-  {4010852096, '1'},
-  {3994140416, '2'},
-  {3977428736, '3'},
-  {3944005376, '4'},
-  {3927293696, '5'},
-  {3910582016, '6'},
-  {3877158656, '7'},
-  {3860446976, '8'},
-  {3843735296, '9'},
-  {4211392256, 'L'}, // LEFT
-  {4177968896, 'R'}, // RIGHT
-  {4194680576, 'S'}, // SELECT
-  {4244815616, 'W'} // SETUP-MODE
-};
-
-// DEVICES //
-const int moisture_sensor = A0;
-const int water_pump = 2;
-const int ir_receiver = 4;
-
-const int RS = 8;
-const int E = 9;
-const int DB4 = 10;
-const int DB5 = 11;
-const int DB6 = 12;
-const int DB7 = 13;
-LiquidCrystal lcd(RS, E, DB4, DB5, DB6, DB7);
-
-// CLASSES 
 class SensorSpecs {
     private:
         int min_soil = 30;
@@ -107,7 +58,55 @@ class SensorSpecs {
         }
 };
 
+// GLOBAL VARIABLES
+char* sensors[3] = {"Soil", "Temp", "Humid"};
+int current_sensor = 0;
+int ui_state = false;
+SensorSpecs specs;
 
+int specValues[4] = {-1, -1, -1, -1};
+void clearMM() {
+    for(int i = 0; i < 4; i++) {
+        specValues[i] = -1;
+    }
+}
+
+struct RemoteControl {
+  long code;
+  const char symbol;
+};
+
+RemoteControl remote_definitions[] = {
+  {4077698816, '0'},
+  {4010852096, '1'},
+  {3994140416, '2'},
+  {3977428736, '3'},
+  {3944005376, '4'},
+  {3927293696, '5'},
+  {3910582016, '6'},
+  {3877158656, '7'},
+  {3860446976, '8'},
+  {3843735296, '9'},
+  {4211392256, 'L'}, // LEFT
+  {4177968896, 'R'}, // RIGHT
+  {4194680576, 'S'}, // SELECT
+  {4244815616, 'W'} // SETUP-MODE
+};
+
+// DEVICES //
+const int moisture_sensor = A0;
+const int water_pump = 2;
+const int ir_receiver = 4;
+
+const int RS = 8;
+const int E = 9;
+const int DB4 = 10;
+const int DB5 = 11;
+const int DB6 = 12;
+const int DB7 = 13;
+LiquidCrystal lcd(RS, E, DB4, DB5, DB6, DB7);
+
+// CLASSES 
 class SensorReader{
     public: 
         int getTemp() {
@@ -142,7 +141,7 @@ class Command {
     }
     else _enableUI();
   }
-   void enterNumber(int num){
+  void enterNumber(int num) {
     if(_getUIState()){
         for(int i = 0; i < 4; i++) {
             if(specValues[i] < 0) {
@@ -150,14 +149,50 @@ class Command {
                 return;
             }
         }
+		setSpecValues();
+        setUpMode();
+        // display the default display
+
+ 
     }
-  }
+    }
+    void setSpecValues() {
+      char x = specValues[0] + '0';
+      char y = specValues[1] + '0';
+      int convert_num1 = x + y - '0';
+      
+      x = specValues[2] + '0';
+      y = specValues[] + '0';
+      int convert_num2 = (x + y) - '0';
+      
+      Serial.println(convert_num1);
+      Serial.println(convert_num2);
+        switch(current_sensor) {
+            case 0: {
+                specs.setMinSoil(convert_num1);
+              	specs.setMaxSoil(convert_num2);
+            }
+                break;
+            case 1: {
+
+            }
+                break;
+            case 2: {
+
+            }
+                break;
+            default: 
+                break;
+        }
+    }
+    int concatenateNumber(int num1, int num2) {
+		return 0;
+    }
 
 
-
-  void select() {
-    // SAVES THE CHAR WHERE THE CURSOR IS OVER BEFORE IT MOVES ON
-  }
+    //   void select() {
+    //     // SAVES THE CHAR WHERE THE CURSOR IS OVER BEFORE IT MOVES ON
+    //   }
   
   private:
   const int num_sensors = 3;
@@ -298,8 +333,6 @@ class Remote {
                     break;
                 case 'R': cmd.shiftViewRight();
                     break;
-                case 'S': cmd.select();
-              		break;
               	case 'W': cmd.setUpMode();
                 	break;
               	default: {
