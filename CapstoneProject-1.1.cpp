@@ -89,12 +89,12 @@ RemoteControl remote_definitions[] = {
   {3843735296, '9'},
   {4211392256, 'L'}, // LEFT
   {4177968896, 'R'}, // RIGHT
-  {4194680576, 'S'}, // SELECT
   {4244815616, 'W'} // SETUP-MODE
 };
 
 // DEVICES //
 const int moisture_sensor = A0;
+const int temp_sensor = A1;
 const int water_pump = 2;
 const int ir_receiver = 4;
 
@@ -110,8 +110,9 @@ LiquidCrystal lcd(RS, E, DB4, DB5, DB6, DB7);
 class SensorReader{
     public: 
         int getTemp() {
-            // don't forget to connect the sensor and finish this method
-            return 50;
+            int temp_reading = analogRead(temp_sensor);
+            int temp_level = map(temp_reading, 20, 358, -40, 125);
+            return celToFah(temp_level);
         }
         int getHumid() {
             // don't forget to connect the sensor and finish this method
@@ -122,6 +123,11 @@ class SensorReader{
             int moisture_level = map(soil_reading, 0, 876, 0, 100);
             return moisture_level;
         }
+    private:
+    int celToFah(int cels) {
+        int conver_num = floor(cels * 1.8);	
+        return conver_num + 32;
+    }
 };
 
 class Command {
@@ -151,48 +157,37 @@ class Command {
         }
 		setSpecValues();
         setUpMode();
-        // display the default display
+    }
+    }
 
- 
-    }
-    }
     void setSpecValues() {
-      char x = specValues[0] + '0';
-      char y = specValues[1] + '0';
-      int convert_num1 = x + y - '0';
+        int join_num1 = joinDigits(specValues[0], specValues[1]);
+        int join_num2 = joinDigits(specValues[2], specValues[3]);
       
-      x = specValues[2] + '0';
-      y = specValues[] + '0';
-      int convert_num2 = (x + y) - '0';
-      
-      Serial.println(convert_num1);
-      Serial.println(convert_num2);
         switch(current_sensor) {
             case 0: {
-                specs.setMinSoil(convert_num1);
-              	specs.setMaxSoil(convert_num2);
+                specs.setMinSoil(join_num1);
+              	specs.setMaxSoil(join_num2);
             }
                 break;
             case 1: {
-
+                specs.setMinTemp(join_num1);
+                specs.setMaxTemp(join_num2);
             }
                 break;
             case 2: {
-
+                specs.setMinHumid(join_num1);
+                specs.setMaxHumid(join_num2);
             }
                 break;
-            default: 
+            default: Serial.println("ERROR: switch(current_sensor");
                 break;
         }
     }
-    int concatenateNumber(int num1, int num2) {
-		return 0;
+
+    int joinDigits(int tens, int ones) {
+        return (tens * 10) + ones;
     }
-
-
-    //   void select() {
-    //     // SAVES THE CHAR WHERE THE CURSOR IS OVER BEFORE IT MOVES ON
-    //   }
   
   private:
   const int num_sensors = 3;
@@ -244,6 +239,12 @@ class Display {
         }
         void _displayLiveValue() {
             lcd.print(_getLiveSensorValue(current_sensor));
+            
+            bool isTemp = (current_sensor == 1);
+            if(isTemp) {
+                lcd.print((char) 178); 
+                lcd.print("F");
+            }
         }
 
 
@@ -355,6 +356,7 @@ void setup() {
 
     // IN/OUT-PUTS
     pinMode(moisture_sensor, INPUT);
+    pinMode(temp_sensor, INPUT);
     pinMode(water_pump, OUTPUT);
 
     // IR RECEIVER
