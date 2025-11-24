@@ -4,58 +4,30 @@
 
 class SensorSpecs {
     private:
-        int min_soil = 30;
-        int max_soil = 80;
+        int min_soil = 30, max_soil = 80;
+        int min_temp = 55, max_temp = 90;
+        int min_humid = 20, max_humid = 99;
 
-        int min_temp = 55;
-        int max_temp = 90;
-
-        int min_humid = 20;
-        int max_humid = 99;
     public:
         // GETTERS
-        int getMinSoil() {
-            return min_soil;
-        }
-        int getMaxSoil() {
-            return max_soil;
-        }
+        int getMinSoil() { return min_soil; }
+        int getMaxSoil() { return max_soil; }
 
-        int getMinTemp() {
-            return min_temp;
-        }
-        int getMaxTemp() {
-            return max_temp;
-        }
+        int getMinTemp() { return min_temp; }
+        int getMaxTemp() { return max_temp; }
 
-        int getMinHumid() {
-            return min_humid;
-        }
-        int getMaxHumid() {
-            return max_humid;
-        }
+        int getMinHumid() { return min_humid; }
+        int getMaxHumid() { return max_humid; }
 
         // SETTERS
-        void setMinSoil(int min) {
-            if(min > 0 && min < 100) min_soil = min;
-        }
-        void setMaxSoil(int max) {
-            if(max > 0 && max < 100) max_soil = max;
-        }
+        void setMinSoil(int min) { if(min > 0 && min < 100) min_soil = min; }
+        void setMaxSoil(int max) { if(max > 0 && max < 100) max_soil = max; }
 
-        void setMinTemp(int min) {
-            if(min > 45 && min < 95) min_soil = min;
-        }
-        void setMaxTemp(int max) {
-            if(max > 45 && max < 95) max_soil = max;
-        }
+        void setMinTemp(int min) { if(min > 45 && min < 95) min_temp = min; }
+        void setMaxTemp(int max) { if(max > 45 && max < 95) max_temp = max; }
 
-        void setMinHumid(int min) {
-            if(min > 0 && min < 100) min_soil = min;
-        }
-        void setMaxHumid(int max) {
-            if(max > 0 && max < 100) max_soil = max;
-        }
+        void setMinHumid(int min) { if(min > 0 && min < 100) min_humid = min; }
+        void setMaxHumid(int max) { if(max > 0 && max < 100) max_humid = max; }
 };
 
 // GLOBAL VARIABLES
@@ -125,8 +97,7 @@ class SensorReader{
         }
     private:
     int celToFah(int cels) {
-        int conver_num = floor(cels * 1.8);	
-        return conver_num + 32;
+        return ((cels * 9) / 5) + 32;	
     }
 };
 
@@ -304,11 +275,11 @@ class Remote {
         void receive() {
             if(IrReceiver.decode() > 0) {
                lcd.clear();
+
                char command = _decodeInput();
-                Serial.println(command);
                if(command != -1) {
                     _runCommands(command);
-                 tempScreen.display();
+                    tempScreen.display();
                } else {
                 // diplay.ERROR(); DISPLAY AN ERROR OCCURED ON THE LCD
                }
@@ -351,7 +322,7 @@ Remote ir;
 Display screen;
 
 void setup() {
-    Serial.begin(9500);    
+    Serial.begin(9600);    
     lcd.begin(16,2);
 
     // IN/OUT-PUTS
@@ -366,5 +337,6 @@ void setup() {
 
 void loop() {
     ir.receive();
-  	delay(750);
 }
+
+//! LAST THING WORK ON REFRESH RATE
