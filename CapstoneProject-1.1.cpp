@@ -81,6 +81,10 @@ LiquidCrystal lcd(RS, E, DB4, DB5, DB6, DB7);
 // CLASSES 
 class SensorReader{
     public: 
+        void updateReading() {
+            getSoil();
+            getTemp();
+        }
         int getTemp() {
             int temp_reading = analogRead(temp_sensor);
             int temp_level = map(temp_reading, 20, 358, -40, 125);
@@ -193,6 +197,10 @@ class Display {
               _navArrows();
             }
         }
+        void update() {
+            _source.updateReading();
+            display();
+        }
     private:
         SensorReader _source;
 
@@ -237,7 +245,6 @@ class Display {
             int max_placement = 13;
 
             _printValue();
-            
         }
         void _printValue() {
             lcd.setCursor(5, 1);
@@ -280,11 +287,8 @@ class Remote {
                if(command != -1) {
                     _runCommands(command);
                     tempScreen.display();
-               } else {
-                // diplay.ERROR(); DISPLAY AN ERROR OCCURED ON THE LCD
                }
             }
-
             IrReceiver.resume();
         }
 
@@ -319,7 +323,7 @@ class Remote {
 
 // STARTER VARIABLES
 Remote ir;
-Display screen;
+Display screen; 
 
 void setup() {
     Serial.begin(9600);    
@@ -337,6 +341,6 @@ void setup() {
 
 void loop() {
     ir.receive();
+    screen.update();
+    delay(1500);
 }
-
-//! LAST THING WORK ON REFRESH RATE
