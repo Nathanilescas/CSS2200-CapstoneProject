@@ -319,11 +319,20 @@ class Remote {
         }
 };
 
+void runPump(int moisture){
+  if(moisture < specs.getMinSoil()){ 
+    digitalWrite(water_pump, HIGH);
+  }
+  else if(moisture > specs.getMaxSoil()){
+   	digitalWrite(water_pump, LOW); 
+  }
+}
 
 
 // STARTER VARIABLES
 Remote ir;
 Display screen; 
+SensorReader sensor;
 
 void setup() {
     Serial.begin(9600);    
@@ -342,5 +351,6 @@ void setup() {
 void loop() {
     ir.receive();
     screen.update();
+  	runPump(sensor.getSoil());
     delay(1500);
 }
